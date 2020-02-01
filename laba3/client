@@ -1,0 +1,60 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+
+namespace client
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                SendMessageFromSocket(1031);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                Console.ReadLine();
+            }
+        }
+
+        static void SendMessageFromSocket(int port)
+        {
+ 
+            byte[] bytes = new byte[256];
+
+            IPHostEntry ipHost = Dns.GetHostEntry("localhost");
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, port);
+
+            Socket sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            sender.Connect(ipEndPoint);
+
+            Console.Write("Enter expression: ");
+            string message = Console.ReadLine();
+
+            byte[] msg = Encoding.UTF8.GetBytes(message);
+
+            int bytesSent = sender.Send(msg);
+
+            int bytesRec = sender.Receive(bytes);
+
+            Console.WriteLine("\n Result: {0}\n\n", Encoding.UTF8.GetString(bytes, 0, bytesRec));
+
+            if (message!= "TheEnd")
+                SendMessageFromSocket(port);
+
+            sender.Shutdown(SocketShutdown.Both);
+            sender.Close();
+        }
+    }
+}
